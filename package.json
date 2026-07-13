@@ -1,7 +1,12 @@
 {
   "name": "@devds1989/t-rush-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
+  "mcpName": "io.github.DevDs1989/t-rush-mcp",
   "description": "MCP server for t-rush. Exposes TODO/FIXME scanning and streak tracking to AI agents.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DevDs1989/trush-mcp.git"
+  },
   "type": "module",
   "bin": {
     "t-rush-mcp": "./dist/index.js"
