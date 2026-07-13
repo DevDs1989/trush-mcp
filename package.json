@@ -1,6 +1,6 @@
 {
   "name": "@devds1989/t-rush-mcp",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "mcpName": "io.github.DevDs1989/t-rush-mcp",
   "description": "MCP server for t-rush. Exposes TODO/FIXME scanning and streak tracking to AI agents.",
   "repository": {
