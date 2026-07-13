@@ -35,7 +35,7 @@ export async function handlePromptCall(name: string, argumentsObj?: any) {
             role: "user",
             content: {
               type: "text",
-              text: `Let's keep my t-rush streak alive by tackling some tech debt today! Please find the top ${count} highest priority TODOs in this repository.\n\nFor each issue, grab its specific code context, walk me through your plan to fix it, and once we agree, implement the change. After it's fixed, make sure to mark it as resolved so my streak updates. Please tackle them strictly one by one, finishing the first completely before moving on to the next.`
+              text: `Let's keep my t-rush streak alive by tackling some tech debt today! Please find the top ${count} highest priority TODOs in this repository.\n\nFirst, please show me a complete list of all the TODOs/tasks you will be doing before starting them.\n\nThen, for each issue, grab its specific code context, walk me through your plan to fix it, and once we agree, implement the change. After it's fixed, make sure to mark it as resolved so my streak updates. Please tackle them strictly one by one, finishing the first completely before moving on to the next.`
             }
           }
         ]
