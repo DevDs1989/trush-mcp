@@ -1,5 +1,7 @@
 <div align="center">
 
+<img width="1160" alt="t-rush-mcp" src="./trush-mcp.jpg" />
+
 # t-rush-mcp
 
 **Speedrun your technical debt, now powered by AI.**
