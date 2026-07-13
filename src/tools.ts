@@ -122,8 +122,8 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         // Sort by age_days descending to find the oldest debt
         enriched.sort((a, b) => b.age_days - a.age_days);
         
-        // Always return up to 20 items so the LLM has enough context to rank them
-        const count = args.count && args.count > 1 ? args.count : 20;
+        // Always return all items by default so the LLM can rank the full list
+        const count = args.count && args.count > 1 ? args.count : enriched.length;
         const topItems = enriched.slice(0, count);
         
         return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
