@@ -25,7 +25,7 @@ import {
 export const toolDefinitions = [
   {
     name: "top_priority_todo",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It returns a shortlist of the oldest tech debt. YOU MUST rank them yourself by evaluating their severity (from the text) and age_days. After evaluating, pick the single most critical one and work on it.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It returns a shortlist of the oldest tech debt. YOU MUST rank them yourself by evaluating their severity (from the text) and age_days. After evaluating, YOU MUST FIRST SHOW THE USER a complete list of all the files/tasks you will be working on. Only after doing that should you pick the most critical one and work on it.",
     inputSchema: {
       type: "object",
       properties: {
