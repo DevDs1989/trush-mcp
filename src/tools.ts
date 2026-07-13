@@ -25,7 +25,7 @@ import {
 export const toolDefinitions = [
   {
     name: "top_priority_todo",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. This is your ONLY entry point to find work. It automatically scans and ranks the tech debt. DO NOT search manually using grep or bash.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It returns a shortlist of the oldest tech debt. YOU MUST rank them yourself by evaluating their severity (from the text) and age_days. After evaluating, pick the single most critical one and work on it.",
     inputSchema: {
       type: "object",
       properties: {
@@ -122,7 +122,8 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         // Sort by age_days descending to find the oldest debt
         enriched.sort((a, b) => b.age_days - a.age_days);
         
-        const count = args.count ?? 1;
+        // Always return up to 20 items so the LLM has enough context to rank them
+        const count = args.count && args.count > 1 ? args.count : 20;
         const topItems = enriched.slice(0, count);
         
         return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
