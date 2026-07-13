@@ -42,7 +42,15 @@ Agents can now query your project for open TODOs, filter them by keyword, priori
 
 **Registry Name:** `io.github.DevDs1989/t-rush-mcp`
 
-### 2. Manual Configuration
+### 2. Via npm (Global Install)
+
+You can install the MCP server globally on your machine using npm:
+
+```bash
+npm install -g @devds1989/t-rush-mcp
+```
+
+### 3. Manual Configuration
 
 To add this server manually to your client's configuration file (e.g. `claude_desktop_config.json`):
 
@@ -63,7 +71,7 @@ Or test it directly via npx:
 npx -y @devds1989/t-rush-mcp
 ```
 
-### 3. Claude Code
+### 4. Claude Code
 
 To add this server directly to Anthropic's Claude Code CLI:
 
