@@ -119,23 +119,13 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         
         let enriched = getAgeDaysState(items);
         
-        if (enriched.length > 20) {
-          enriched.sort((a, b) => b.age_days - a.age_days);
-          enriched = enriched.slice(0, 20);
-        }
+        // Sort by age_days descending to find the oldest debt
+        enriched.sort((a, b) => b.age_days - a.age_days);
         
         const count = args.count ?? 1;
-        const prompt = `You are a prioritization engine. Here is a shortlist of open TODOs. Rank them by priority considering severity (from the text) and age_days. Return ONLY a JSON array of the top ${count} items. Each item must include 'file', 'line', 'text', 'age_days', and a short 'reason' for why it was ranked this high.
+        const topItems = enriched.slice(0, count);
         
-        Shortlist:
-        ${JSON.stringify(enriched, null, 2)}`;
-        
-        const response = await server.createMessage({
-          messages: [{ role: "user", content: { type: "text", text: prompt } }],
-          maxTokens: 1000,
-        });
-        
-        return { content: [{ type: "text", text: response.content.text || JSON.stringify(response.content) }] };
+        return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
       }
 
       case "resolve_todo": {
@@ -169,24 +159,8 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
       case "search_todos": {
         const args = SearchTodosSchema.parse(argumentsObj);
         const items = await scanRepo(args.cwd);
-        
-        if (items.length === 0) {
-          return { content: [{ type: "text", text: "[]" }] };
-        }
-
-        const prompt = `You are a semantic search engine. Find all items that semantically match the user's query: "${args.query}". 
-        Even if the query contains conversational filler (e.g. "search for the map setup todo"), identify the core intent and return the matching items.
-        Return ONLY a JSON array of the matching items. If none match, return an empty array [].
-        
-        List to search:
-        ${JSON.stringify(items, null, 2)}`;
-        
-        const response = await server.createMessage({
-          messages: [{ role: "user", content: { type: "text", text: prompt } }],
-          maxTokens: 1000,
-        });
-        
-        return { content: [{ type: "text", text: response.content.text || JSON.stringify(response.content) }] };
+        const results = searchTodos(items, args.query);
+        return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
       }
 
       case "get_streak_status": {
