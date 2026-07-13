@@ -30,8 +30,9 @@ export const toolDefinitions = [
       type: "object",
       properties: {
         count: { type: "number", description: "Number of top items to return (default 1)" },
-        repo_path: { type: "string" }
-      }
+        repo_path: { type: "string", description: "Absolute path to the repository" }
+      },
+      required: ["repo_path"]
     }
   },
   {
@@ -51,7 +52,8 @@ export const toolDefinitions = [
     description: "Internal/manual use: returns the full unranked list of TODOs in a repo.",
     inputSchema: {
       type: "object",
-      properties: { cwd: { type: "string" } }
+      properties: { cwd: { type: "string", description: "Absolute path to the repository" } },
+      required: ["cwd"]
     }
   },
   {
@@ -59,8 +61,8 @@ export const toolDefinitions = [
     description: "CRITICAL INSTRUCTION: ALWAYS use this tool instead of generic Search or grep_search when looking for a specific TODO, FIXME, or BUG. Fuzzy searches across the codebase for matching tech debt by intent.",
     inputSchema: {
       type: "object",
-      properties: { cwd: { type: "string" }, query: { type: "string" } },
-      required: ["query"]
+      properties: { cwd: { type: "string", description: "Absolute path to the repository" }, query: { type: "string", description: "Keywords only, no conversational filler" } },
+      required: ["cwd", "query"]
     }
   },
   {
