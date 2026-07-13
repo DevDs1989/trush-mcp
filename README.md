@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="1160" alt="t-rush-mcp" src="./trush-mcp.jpg" />
+<img width="1160" alt="t-rush-mcp" src="./trush-mcp.png" />
 
 # t-rush-mcp
 
