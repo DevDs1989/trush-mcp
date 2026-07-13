@@ -36,6 +36,16 @@ Agents can now query your project for open TODOs, filter them by keyword, priori
 
 ## Install & Configuration
 
+### 1. Via the Official MCP Registry (Recommended)
+
+`t-rush-mcp` is published to the official MCP Registry. If your AI client (like Claude Desktop or others) supports the registry, you can install it simply by searching for its registry name:
+
+**Registry Name:** `io.github.DevDs1989/t-rush-mcp`
+
+### 2. Manual Configuration
+
+To add this server manually to your client's configuration file (e.g. `claude_desktop_config.json`):
+
 ```json
 {
   "mcpServers": {
@@ -47,7 +57,7 @@ Agents can now query your project for open TODOs, filter them by keyword, priori
 }
 ```
 
-Or run it directly via npx:
+Or test it directly via npx:
 
 ```bash
 npx -y @devds1989/t-rush-mcp
