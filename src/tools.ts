@@ -168,9 +168,25 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
 
       case "search_todos": {
         const args = SearchTodosSchema.parse(argumentsObj);
-        const items = await scanRepo(args.cwd || process.cwd());
-        const results = searchTodos(items, args.query);
-        return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
+        const items = await scanRepo(args.cwd);
+        
+        if (items.length === 0) {
+          return { content: [{ type: "text", text: "[]" }] };
+        }
+
+        const prompt = `You are a semantic search engine. Find all items that semantically match the user's query: "${args.query}". 
+        Even if the query contains conversational filler (e.g. "search for the map setup todo"), identify the core intent and return the matching items.
+        Return ONLY a JSON array of the matching items. If none match, return an empty array [].
+        
+        List to search:
+        ${JSON.stringify(items, null, 2)}`;
+        
+        const response = await server.createMessage({
+          messages: [{ role: "user", content: { type: "text", text: prompt } }],
+          maxTokens: 1000,
+        });
+        
+        return { content: [{ type: "text", text: response.content.text || JSON.stringify(response.content) }] };
       }
 
       case "get_streak_status": {
