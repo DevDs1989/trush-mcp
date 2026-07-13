@@ -2,65 +2,92 @@
 
 # t-rush-mcp
 
-**An MCP Server for AI agents to scan, triage, and speedrun your codebase technical debt.**
+**Speedrun your technical debt, now powered by AI.**
+
+An MCP (Model Context Protocol) server that exposes the power of t-rush directly to AI coding assistants like Antigravity, Claude, and others. Let your AI agents find, prioritize, and fix TODO · FIXME · BUG comments across your codebase.
 
 [![npm version](https://img.shields.io/npm/v/@devds1989/t-rush-mcp?color=black&style=flat-square)](https://www.npmjs.com/package/@devds1989/t-rush-mcp)
+[![license](https://img.shields.io/github/license/DevDs1989/trush-mcp?color=black&style=flat-square)](./LICENSE)
 
 </div>
 
 ---
 
-## Lineage & Core Concept
+## Why t-rush-mcp?
 
-This project is a direct extension of the `t-rush` ecosystem. Rather than rewriting TODO-scanning logic from scratch, it shares the exact same core engine ([`@devds1989/trush-core`](https://github.com/DevDs1989/trush-core)) as the original [`t-rush` CLI](https://github.com/DevDs1989/trush).
+AI coding agents are great at fixing bugs, but they often struggle to know *what* to work on when left unattended. `t-rush-mcp` bridges this gap by exposing your codebase's technical debt directly to the AI through standard MCP tools.
 
-This guarantees that humans and AI agents stay in perfect sync:
-- **Shared Scanner:** A new regex or language feature added to `trush-core` instantly works for both the CLI and the MCP server.
-- **Shared State:** When an agent resolves a TODO via this MCP server, it updates the same `~/.t-rush/data.json` file used by the CLI. If an agent fixes a bug, your personal streak goes up.
-
-While comparable TODO-scanning MCP servers exist (e.g., Startr's GitHub TODO Scanner, TechDebtMCP), `t-rush-mcp` differentiates itself by acting as a secondary interface to an established human-first tool, rather than an isolated silo. It also introduces cross-repo debt aggregation and gamified momentum (streaks) that existing alternatives lack.
+Agents can now query your project for open TODOs, filter them by keyword, prioritize the oldest debt, and even increment your personal t-rush completion streak when they successfully resolve them.
 
 ---
 
-## Features for Agents
+## Features
 
-- **scan_todos**: Recursively scan a project for `TODO`, `FIXME`, `BUG`, `HACK`, and `XXX` markers, complete with `git blame` author attribution.
-- **search_todos**: Fuzzy search capabilities letting agents query by intent (e.g. "auth race condition") rather than exact string matches.
-- **triage_todos**: Categorizes comments into High, Medium, and Low severity based on keyword heuristics.
-- **suggest_resolution**: Analyzes the surrounding code context of a TODO to help an agent formulate an implementation plan.
-- **aggregate_debt**: Scans multiple repositories simultaneously to provide a unified overview of all accumulated debt.
-- **resolve_todo**: Marks a TODO as resolved and immediately bumps the user's streak.
+- **`top_priority_todo`**: Feeds the agent all open TODO/FIXME comments so it can rank them by age and severity natively.
+- **`search_todos`**: Allows the agent to fuzzy-search existing comments to find specific tasks.
+- **`resolve_todo`**: Verifies the comment has been removed from the file and automatically increments the t-rush streak.
+- **`scan_todos`**: Returns an unranked, raw list of all tech debt in a repository.
+- **`get_streak_status`**: Exposes the user's current streak and stats to the agent.
+- **`aggregate_debt`**: Summarizes the total debt across multiple local repositories.
 
 ---
 
-## Quick Start (for Claude Desktop / MCP Clients)
-
-You do not need to install this globally. You can run it seamlessly using `npx`:
+## Install & Configuration
 
 ```json
 {
   "mcpServers": {
-    "trush": {
+    "t-rush": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@devds1989/t-rush-mcp"
-      ]
+      "args": ["-y", "@devds1989/t-rush-mcp"]
     }
   }
 }
 ```
 
-Since the server runs entirely on your local machine using standard `git` and file I/O, **no API keys or external authentication are required**.
+Or run it directly via npx:
+
+```bash
+npx -y @devds1989/t-rush-mcp
+```
+
+**Requirements:** Node.js 18+
 
 ---
 
-## Usage Scenarios
+## How it works
 
-The server provides built-in MCP prompts for common AI workflows:
+`t-rush-mcp` uses the shared `@devds1989/trush-core` logic to scan your codebase using the exact same parsers as the `t-rush` CLI. All streak updates and history modifications made by the AI agent are instantly synchronized with your local `~/.t-rush/data.json` database.
 
-1. **Daily Cleanup (`daily_cleanup`)**: Automates the "keep the streak alive" loop. Instructs the AI to scan the repo, triage the debt, pick a high-priority issue, suggest a fix, and increment your streak upon confirmation.
-2. **Pre-Refactor Audit (`pre_refactor_audit`)**: Scopes a scan and triage to a specific module folder before touching it, allowing the AI to map out known "landmines" (bugs or hacks) before rewriting code.
+When an AI agent resolves a TODO, it increments your streak—teamwork!
+
+---
+
+## Supported languages
+
+t-rush detects `TODO` and `FIXME` in all common comment styles:
+
+| Style | Languages |
+|---|---|
+| `//` | JavaScript, TypeScript, Go, Rust, C, C++, Java, Kotlin, Swift, Dart |
+| `#` | Python, Ruby, Shell, YAML, R, Perl, Elixir, Crystal |
+| `--` | SQL, Lua, Haskell, Ada |
+| `%` | Erlang, LaTeX |
+| `;` | Lisp, Clojure, Assembly |
+| `*` | Inside `/* */` block comments |
+
+---
+
+## Contributing
+
+Contributions are welcome. Please open an issue before submitting a large PR.
+
+```bash
+git clone https://github.com/DevDs1989/trush-mcp
+cd trush-mcp
+npm install
+npm run build
+```
 
 ---
 
