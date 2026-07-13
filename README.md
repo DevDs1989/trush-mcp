@@ -63,6 +63,14 @@ Or test it directly via npx:
 npx -y @devds1989/t-rush-mcp
 ```
 
+### 3. Claude Code
+
+To add this server directly to Anthropic's Claude Code CLI:
+
+```bash
+claude mcp add t-rush -- npx -y @devds1989/t-rush-mcp
+```
+
 **Requirements:** Node.js 18+
 
 ---
