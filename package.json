@@ -12,7 +12,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "prepublishOnly": "tsup"
+    "prepublishOnly": "tsup",
+    "bundle:mcpb": "npm install --omit=dev && npx -y @anthropic-ai/mcpb pack . t-rush.mcpb && npm install",
+    "publish:smithery": "npm run build && npm run bundle:mcpb && npx -y @smithery/cli mcp publish ./t-rush.mcpb -n devds1989/trush-mcp"
   },
   "keywords": [
     "mcp",

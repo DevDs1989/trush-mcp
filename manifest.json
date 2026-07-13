@@ -1,0 +1,21 @@
+{
+  "manifest_version": "0.2",
+  "name": "@devds1989/t-rush-mcp",
+  "version": "1.0.1",
+  "description": "Speedrun your technical debt, now powered by AI. Finds, prioritizes, and fixes TODO, FIXME, and BUG comments.",
+  "author": {
+    "name": "Devesh Srivastava"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/dist/index.js"
+      ],
+      "env": {}
+    }
+  },
+  "license": "MIT"
+}
