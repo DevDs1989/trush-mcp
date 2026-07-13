@@ -1,6 +1,6 @@
 {
   "name": "@devds1989/t-rush-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for t-rush. Exposes TODO/FIXME scanning and streak tracking to AI agents.",
   "type": "module",
   "bin": {
