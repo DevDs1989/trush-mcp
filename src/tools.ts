@@ -25,11 +25,11 @@ import {
 export const toolDefinitions = [
   {
     name: "top_priority_todo",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo, ranks the oldest tech debt, and presents the user with an interactive selection prompt so they can choose which item to work on. The tool returns the user's chosen item — proceed to work on it directly.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and returns the highest priority items. After calling this tool, work on the item it returns.",
     inputSchema: {
       type: "object",
       properties: {
-        count: { type: "number", description: "Number of top items to show in the selection prompt (default 5)" },
+        count: { type: "number", description: "Number of top items to return (default 5)" },
         repo_path: { type: "string", description: "Absolute path to the repository" }
       },
       required: ["repo_path"]
