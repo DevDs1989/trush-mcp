@@ -25,10 +25,10 @@ Agents can now query your project for open TODOs, filter them by keyword, priori
 
 ## Features
 
-- **`top_priority_todo`**: Feeds the agent all open TODO/FIXME comments so it can rank them by age and severity natively.
+- **`find_todos`**: Feeds the agent all open TODO/FIXME comments so it can rank them by age and severity natively.
 - **`search_todos`**: Allows the agent to fuzzy-search existing comments to find specific tasks.
 - **`resolve_todo`**: Verifies the comment has been removed from the file and automatically increments the t-rush streak.
-- **`scan_todos`**: Returns an unranked, raw list of all tech debt in a repository.
+- **`scan_todos_raw`**: Returns an unranked, raw list of all tech debt in a repository.
 - **`get_streak_status`**: Exposes the user's current streak and stats to the agent.
 - **`aggregate_debt`**: Summarizes the total debt across multiple local repositories.
 

@@ -24,7 +24,7 @@ import {
 
 export const toolDefinitions = [
   {
-    name: "top_priority_todo",
+    name: "find_todos",
     description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and returns the highest priority items. After calling this tool, work on the item it returns.",
     inputSchema: {
       type: "object",
@@ -48,7 +48,7 @@ export const toolDefinitions = [
     }
   },
   {
-    name: "scan_todos",
+    name: "scan_todos_raw",
     description: "Internal/manual use: returns the full unranked list of TODOs in a repo.",
     inputSchema: {
       type: "object",
@@ -109,7 +109,7 @@ function getAgeDaysState(items: TodoItem[]): any[] {
 export async function handleToolCall(name: string, argumentsObj: any, server: Server) {
   try {
     switch (name) {
-      case "top_priority_todo": {
+      case "find_todos": {
         const args = TopPriorityTodoSchema.parse(argumentsObj);
         const cwd = args.repo_path || process.cwd();
         const items = await scanRepo(cwd);
@@ -224,7 +224,7 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         };
       }
       
-      case "scan_todos": {
+      case "scan_todos_raw": {
         const args = ScanTodosSchema.parse(argumentsObj);
         const items = await scanRepo(args.cwd || process.cwd());
         return { content: [{ type: "text", text: JSON.stringify(items, null, 2) }] };
