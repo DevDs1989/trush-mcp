@@ -25,11 +25,11 @@ import {
 export const toolDefinitions = [
   {
     name: "top_priority_todo",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It returns a shortlist of the oldest tech debt. YOU MUST rank them yourself by evaluating their severity (from the text) and age_days. After evaluating, YOU MUST FIRST SHOW THE USER a complete list of all the files/tasks you will be working on. Only after doing that should you pick the most critical one and work on it.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo, ranks the oldest tech debt, and presents the user with an interactive selection prompt so they can choose which item to work on. The tool returns the user's chosen item — proceed to work on it directly.",
     inputSchema: {
       type: "object",
       properties: {
-        count: { type: "number", description: "Number of top items to return (default 1)" },
+        count: { type: "number", description: "Number of top items to show in the selection prompt (default 5)" },
         repo_path: { type: "string", description: "Absolute path to the repository" }
       },
       required: ["repo_path"]
@@ -114,7 +114,7 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         const cwd = args.repo_path || process.cwd();
         const items = await scanRepo(cwd);
         if (items.length === 0) {
-          return { content: [{ type: "text", text: "[]" }] };
+          return { content: [{ type: "text", text: "No TODOs found in this repository! 🎉" }] };
         }
         
         let enriched = getAgeDaysState(items);
@@ -122,11 +122,84 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         // Sort by age_days descending to find the oldest debt
         enriched.sort((a, b) => b.age_days - a.age_days);
         
-        // Always return all items by default so the LLM can rank the full list
-        const count = args.count && args.count > 1 ? args.count : enriched.length;
+        // Limit to count items for the selection prompt
+        const count = args.count && args.count > 1 ? args.count : Math.min(5, enriched.length);
         const topItems = enriched.slice(0, count);
         
-        return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
+        // Build a detailed summary for the prompt message
+        const itemLines = topItems.map((item, idx) =>
+          `${idx + 1}. [${item.type}] ${item.file}:${item.line}\n   "${item.text}"\n   Age: ${item.age_days} day(s)`
+        ).join("\n\n");
+
+        const promptMessage = `Found ${enriched.length} TODO(s) in the repo. Here are the top ${topItems.length}:\n\n${itemLines}\n\nWhich one would you like to tackle?`;
+
+
+        try {
+          const result = await server.elicitInput({
+            mode: "form",
+            message: promptMessage,
+            requestedSchema: {
+              type: "object",
+              properties: {
+                proceed: {
+                  type: "string",
+                  title: "Should I proceed with these?",
+                  oneOf: [
+                    { const: "yes", title: "Yes, go ahead" },
+                    { const: "no", title: "No, skip" }
+                  ],
+                  default: "yes"
+                },
+                custom_instruction: {
+                  type: "string",
+                  title: "Or tell me what to do instead (optional)",
+                  description: "e.g. 'work on item 3' or 'focus on the BUG in parser.ts'"
+                }
+              },
+              required: ["proceed"]
+            }
+          });
+
+          if (result.action === "accept" && result.content) {
+            const customInstruction = result.content.custom_instruction as string | undefined;
+            const proceed = result.content.proceed as string;
+
+            if (customInstruction && customInstruction.trim().length > 0) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `User provided custom instruction: "${customInstruction.trim()}"\n\nHere are all the scanned items for context:\n${JSON.stringify(topItems, null, 2)}`
+                }]
+              };
+            }
+
+            if (proceed === "yes") {
+              const chosen = topItems[0];
+              return {
+                content: [{
+                  type: "text",
+                  text: `User approved. Proceed with the top priority item:\n${JSON.stringify(chosen, null, 2)}`
+                }]
+              };
+            } else {
+              return {
+                content: [{ type: "text", text: "User chose not to proceed. No action needed." }]
+              };
+            }
+          } else if (result.action === "decline") {
+            return {
+              content: [{ type: "text", text: "User declined to select a TODO. No action needed." }]
+            };
+          } else {
+            return {
+              content: [{ type: "text", text: "TODO selection was cancelled." }]
+            };
+          }
+        } catch (elicitError: any) {
+          // Fallback: if elicitation is not supported by the client, return the full list
+          console.error("Elicitation not supported, falling back to list:", elicitError.message);
+          return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
+        }
       }
 
       case "resolve_todo": {
