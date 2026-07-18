@@ -103,46 +103,33 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
           return { content: [{ type: "text", text: "No TODOs found in this repository! 🎉" }] };
         }
         
-        // Calculate priority for each item
-        const prioritized = items.map(item => {
-          // 1. Severity Score
-          let severityScore = 0;
-          switch (item.type.toUpperCase()) {
-            case "BUG": severityScore = 100; break;
-            case "FIXME": severityScore = 50; break;
-            case "TODO": severityScore = 0; break;
-          }
-          
-          // 2. Age Bonus
-          const ageBonus = item.age_days || 0;
-          
-          // 3. Context/Objective Bonus
-          let contextBonus = 0;
-          if (args.objective) {
-            const objectiveWords = args.objective.toLowerCase().split(/\s+/);
-            const itemText = (item.text + " " + item.file).toLowerCase();
-            
-            for (const word of objectiveWords) {
-              if (word.length > 2 && itemText.includes(word)) {
-                contextBonus += 30;
-              }
+        // Sort by age_days descending (oldest debt first)
+        items.sort((a, b) => (b.age_days || 0) - (a.age_days || 0));
+        
+        // Limit to count items
+        const count = args.count && args.count > 1 ? args.count : Math.min(5, items.length);
+        const topItems = items.slice(0, count);
+
+        // Attach code snippet for context so the LLM can determine severity
+        const enrichedItems = topItems.map(item => {
+          const fullPath = path.resolve(cwd, item.file);
+          let snippet = "";
+          if (fs.existsSync(fullPath)) {
+            try {
+              const content = fs.readFileSync(fullPath, "utf-8");
+              const lines = content.split('\n');
+              // Get up to 5 lines after the TODO for context
+              const start = Math.max(0, item.line - 1);
+              const end = Math.min(lines.length, start + 6);
+              snippet = lines.slice(start, end).join('\n');
+            } catch (e) {
+              snippet = "Error reading file context";
             }
           }
-          
-          return {
-            ...item,
-            priority_score: severityScore + ageBonus + contextBonus
-          };
+          return { ...item, snippet };
         });
         
-        // Sort by priority_score descending
-        prioritized.sort((a, b) => b.priority_score - a.priority_score);
-        
-        // Limit to count items for the selection prompt
-        const count = args.count && args.count > 1 ? args.count : Math.min(5, prioritized.length);
-        const topItems = prioritized.slice(0, count);
-        
-        return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
+        return { content: [{ type: "text", text: JSON.stringify(enrichedItems, null, 2) }] };
       }
 
       case "resolve_todo": {
