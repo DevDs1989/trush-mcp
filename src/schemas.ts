@@ -2,11 +2,13 @@ import { z } from "zod";
 
 export const ScanTodosSchema = z.object({
   cwd: z.string().describe("Absolute directory path to scan. MUST be provided."),
+  directory_filter: z.string().optional().describe("Optional subdirectory path to restrict the scan to a specific folder"),
 });
 
 export const SearchTodosSchema = z.object({
   cwd: z.string().describe("Absolute directory path to scan. MUST be provided."),
   query: z.string().describe("Search query (keywords only, NO conversational filler like 'search for')"),
+  directory_filter: z.string().optional().describe("Optional subdirectory path to restrict the scan to a specific folder"),
 });
 
 export const GetStreakStatusSchema = z.object({});
@@ -23,6 +25,7 @@ export const AggregateDebtSchema = z.object({
 export const TopPriorityTodoSchema = z.object({
   count: z.number().optional().default(1).describe("Number of top priority items to return"),
   repo_path: z.string().describe("Absolute directory path to scan. MUST be provided."),
+  directory_filter: z.string().optional().describe("Optional subdirectory path to restrict the scan to a specific folder"),
 });
 
 export const GetTodoContextSchema = z.object({
