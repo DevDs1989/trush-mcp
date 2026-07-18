@@ -26,6 +26,7 @@ export const TopPriorityTodoSchema = z.object({
   count: z.number().optional().default(1).describe("Number of top priority items to return"),
   repo_path: z.string().describe("Absolute directory path to scan. MUST be provided."),
   directory_filter: z.string().optional().describe("Optional subdirectory path to restrict the scan to a specific folder"),
+  objective: z.string().optional().describe("What the user wants to achieve (e.g. 'fix database errors', 'improve ui') to boost semantic relevance priority"),
 });
 
 export const GetTodoContextSchema = z.object({

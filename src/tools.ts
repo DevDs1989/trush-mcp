@@ -103,12 +103,44 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
           return { content: [{ type: "text", text: "No TODOs found in this repository! 🎉" }] };
         }
         
-        // Sort by age_days descending to find the oldest debt (defaulting to 0 if undefined)
-        items.sort((a, b) => (b.age_days || 0) - (a.age_days || 0));
+        // Calculate priority for each item
+        const prioritized = items.map(item => {
+          // 1. Severity Score
+          let severityScore = 0;
+          switch (item.type.toUpperCase()) {
+            case "BUG": severityScore = 100; break;
+            case "FIXME": severityScore = 50; break;
+            case "TODO": severityScore = 0; break;
+          }
+          
+          // 2. Age Bonus
+          const ageBonus = item.age_days || 0;
+          
+          // 3. Context/Objective Bonus
+          let contextBonus = 0;
+          if (args.objective) {
+            const objectiveWords = args.objective.toLowerCase().split(/\s+/);
+            const itemText = (item.text + " " + item.file).toLowerCase();
+            
+            for (const word of objectiveWords) {
+              if (word.length > 2 && itemText.includes(word)) {
+                contextBonus += 30;
+              }
+            }
+          }
+          
+          return {
+            ...item,
+            priority_score: severityScore + ageBonus + contextBonus
+          };
+        });
+        
+        // Sort by priority_score descending
+        prioritized.sort((a, b) => b.priority_score - a.priority_score);
         
         // Limit to count items for the selection prompt
-        const count = args.count && args.count > 1 ? args.count : Math.min(5, items.length);
-        const topItems = items.slice(0, count);
+        const count = args.count && args.count > 1 ? args.count : Math.min(5, prioritized.length);
+        const topItems = prioritized.slice(0, count);
         
         return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
       }
