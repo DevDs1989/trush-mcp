@@ -21,6 +21,9 @@ AI coding agents are great at fixing bugs, but they often struggle to know *what
 
 Agents can now query your project for open TODOs, filter them by keyword, prioritize the oldest debt, and even increment your personal t-rush completion streak when they successfully resolve them.
 
+### 💻 Want to fix TODOs manually?
+Try the **[t-rush CLI](https://github.com/DevDs1989/trush)** to speedrun your own TODOs! Pick a bug, start a timer, fix the code, and build a massive completion streak yourself.
+
 ---
 
 ## Features
