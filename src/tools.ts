@@ -109,27 +109,8 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         // Limit to count items
         const count = args.count && args.count > 1 ? args.count : Math.min(5, items.length);
         const topItems = items.slice(0, count);
-
-        // Attach code snippet for context so the LLM can determine severity
-        const enrichedItems = topItems.map(item => {
-          const fullPath = path.resolve(cwd, item.file);
-          let snippet = "";
-          if (fs.existsSync(fullPath)) {
-            try {
-              const content = fs.readFileSync(fullPath, "utf-8");
-              const lines = content.split('\n');
-              // Get up to 5 lines after the TODO for context
-              const start = Math.max(0, item.line - 1);
-              const end = Math.min(lines.length, start + 6);
-              snippet = lines.slice(start, end).join('\n');
-            } catch (e) {
-              snippet = "Error reading file context";
-            }
-          }
-          return { ...item, snippet };
-        });
         
-        return { content: [{ type: "text", text: JSON.stringify(enrichedItems, null, 2) }] };
+        return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
       }
 
       case "resolve_todo": {
