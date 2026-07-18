@@ -35,7 +35,11 @@ export async function handlePromptCall(name: string, argumentsObj?: any) {
             role: "user",
             content: {
               type: "text",
-              text: `Let's keep my t-rush streak alive by tackling some tech debt today! Use the find_todos tool with count=${count} to scan this repository — it will present me with an interactive plan to approve or deny.\n\nDo NOT list the TODOs in chat. The tool will handle presenting the plan for my review.\n\nOnce I approve the plan, for each approved item: grab its specific code context, implement the fix, and then mark it as resolved so my streak updates. Please tackle them strictly one by one, finishing the first completely before moving on to the next.`
+              text: `Let's keep my t-rush streak alive by tackling some tech debt today!
+
+1. Use the \`find_todos\` tool with count=${count} to scan this repository — it will present me with an interactive plan to approve or deny via the MCP server. Do NOT list the TODOs in chat.
+2. Once I approve the plan via the tool, create a markdown artifact (e.g., 'approved_todos_plan.md') listing the approved items so we have a record before starting the work.
+3. Finally, do not implement the fixes yourself. Instead, spawn a subagent (using \`invoke_subagent\`) for each approved TODO to implement the fix. Instruct each subagent to grab the code context, implement the fix, and then mark it as resolved using the \`resolve_todo\` tool so my streak updates.`
             }
           }
         ]
