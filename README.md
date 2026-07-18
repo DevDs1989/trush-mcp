@@ -53,7 +53,8 @@ To add this server manually to your client's configuration file (e.g. `claude_de
   "mcpServers": {
     "t-rush": {
       "command": "npx",
-      "args": ["-y", "@devds1989/t-rush-mcp"]
+      "args": ["-y", "@devds1989/t-rush-mcp"],
+      "eager": true
     }
   }
 }
