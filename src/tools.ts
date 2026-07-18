@@ -89,30 +89,7 @@ export const toolDefinitions = [
   }
 ];
 
-function getAgeDaysState(items: TodoItem[]): any[] {
-  const statePath = path.join(os.homedir(), ".t-rush", "mcp_state.json");
-  let state: Record<string, number> = {};
-  if (fs.existsSync(statePath)) {
-    try {
-      state = JSON.parse(fs.readFileSync(statePath, "utf-8"));
-    } catch (e) {}
-  }
-  const now = Date.now();
-  const enriched = items.map(item => {
-    const key = `${item.file}:${item.line}`;
-    if (!state[key]) {
-      state[key] = now;
-    }
-    const age_days = Math.floor((now - state[key]) / 86400000);
-    return { ...item, age_days };
-  });
-  
-  if (!fs.existsSync(path.dirname(statePath))) {
-    fs.mkdirSync(path.dirname(statePath), { recursive: true });
-  }
-  fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
-  return enriched;
-}
+
 
 export async function handleToolCall(name: string, argumentsObj: any, server: Server) {
   try {
@@ -126,14 +103,12 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
           return { content: [{ type: "text", text: "No TODOs found in this repository! 🎉" }] };
         }
         
-        let enriched = getAgeDaysState(items);
-        
-        // Sort by age_days descending to find the oldest debt
-        enriched.sort((a, b) => b.age_days - a.age_days);
+        // Sort by age_days descending to find the oldest debt (defaulting to 0 if undefined)
+        items.sort((a, b) => (b.age_days || 0) - (a.age_days || 0));
         
         // Limit to count items for the selection prompt
-        const count = args.count && args.count > 1 ? args.count : Math.min(5, enriched.length);
-        const topItems = enriched.slice(0, count);
+        const count = args.count && args.count > 1 ? args.count : Math.min(5, items.length);
+        const topItems = items.slice(0, count);
         
         return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
       }

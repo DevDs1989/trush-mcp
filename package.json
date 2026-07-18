@@ -1,6 +1,6 @@
 {
   "name": "@devds1989/t-rush-mcp",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "mcpName": "io.github.DevDs1989/t-rush-mcp",
   "description": "MCP server for t-rush. Exposes TODO/FIXME scanning and streak tracking to AI agents.",
   "repository": {
@@ -29,7 +29,7 @@
   "author": "Devesh",
   "license": "MIT",
   "dependencies": {
-    "@devds1989/trush-core": "^1.0.3",
+    "@devds1989/trush-core": "^1.0.4",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.4.3"
   },
