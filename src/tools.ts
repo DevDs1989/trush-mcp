@@ -25,7 +25,7 @@ import {
 export const toolDefinitions = [
   {
     name: "find_todos",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and returns the highest priority items. After calling this tool, DO NOT list the items in chat. Instead: 1) Create a markdown artifact with a detailed plan for EACH individual TODO. 2) Create a final markdown artifact summarizing all the work that will be done and request user feedback (approval) on it via the RequestFeedback flag before proceeding with the work.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and returns the highest priority items. After calling this tool, DO NOT list the items in chat. Instead, create a single markdown artifact (e.g. 'todo_plans.md') containing a detailed plan for all of the TODOs. Request user feedback (approval) on this artifact via the RequestFeedback flag before proceeding with the work.",
     inputSchema: {
       type: "object",
       properties: {

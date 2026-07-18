@@ -38,9 +38,8 @@ export async function handlePromptCall(name: string, argumentsObj?: any) {
               text: `Let's keep my t-rush streak alive by tackling some tech debt today!
 
 1. Use the \`find_todos\` tool with count=${count} to scan this repository. Do NOT list the TODOs in chat.
-2. For each returned TODO, create a markdown artifact with your proposed plan to fix it.
-3. Once all individual plans are created, create a final markdown artifact summarizing all the work that will be done, and request my feedback (approval) on it via the 'RequestFeedback' flag.
-4. After I approve, spawn a subagent (using \`invoke_subagent\`) for each approved TODO to implement the fix. Instruct each subagent to grab the code context, implement the fix, and then mark it as resolved using the \`resolve_todo\` tool so my streak updates.`
+2. Create a single markdown artifact (e.g. 'todo_plans.md') containing your proposed plan to fix all of the returned TODOs, and request my feedback (approval) on it via the 'RequestFeedback' flag.
+3. After I approve, spawn a subagent (using \`invoke_subagent\`) for each approved TODO to implement the fix. Instruct each subagent to grab the code context, implement the fix, and then mark it as resolved using the \`resolve_todo\` tool so my streak updates.`
             }
           }
         ]
