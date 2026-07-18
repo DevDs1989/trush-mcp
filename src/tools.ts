@@ -25,7 +25,7 @@ import {
 export const toolDefinitions = [
   {
     name: "find_todos",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and returns the highest priority items. After calling this tool, work on the item it returns.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and presents the user with an interactive plan to approve or deny. Do NOT list the plan items in chat — the tool handles presentation. After the user approves, work on the returned items.",
     inputSchema: {
       type: "object",
       properties: {
@@ -126,73 +126,105 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         const count = args.count && args.count > 1 ? args.count : Math.min(5, enriched.length);
         const topItems = enriched.slice(0, count);
         
-        // Build a detailed summary for the prompt message
-        const itemLines = topItems.map((item, idx) =>
-          `${idx + 1}. [${item.type}] ${item.file}:${item.line}\n   "${item.text}"\n   Age: ${item.age_days} day(s)`
+        // Build a rich plan artifact for elicitation
+        const divider = "─".repeat(50);
+        const planLines = topItems.map((item, idx) =>
+          `  ${idx + 1}. [${item.type}] ${item.file}:${item.line}\n     "${item.text}"\n     Age: ${item.age_days} day(s)`
         ).join("\n\n");
 
-        const promptMessage = `Found ${enriched.length} TODO(s) in the repo. Here are the top ${topItems.length}:\n\n${itemLines}\n\nWhich one would you like to tackle?`;
+        const planMessage = [
+          `📋 Tech Debt Cleanup Plan`,
+          divider,
+          `Found ${enriched.length} item(s) total. Showing top ${topItems.length} by age:\n`,
+          planLines,
+          `\n${divider}`,
+          `Review the plan above and approve, deny, or customize.`
+        ].join("\n");
 
+        // Build oneOf options for item selection
+        const itemChoices = topItems.map((item, idx) => ({
+          const: String(idx + 1),
+          title: `#${idx + 1} [${item.type}] ${path.basename(item.file)}:${item.line} — "${item.text.length > 50 ? item.text.slice(0, 50) + '…' : item.text}"`
+        }));
 
         try {
           const result = await server.elicitInput({
             mode: "form",
-            message: promptMessage,
+            message: planMessage,
             requestedSchema: {
               type: "object",
               properties: {
-                proceed: {
+                action: {
                   type: "string",
-                  title: "Should I proceed with these?",
+                  title: "What would you like to do?",
                   oneOf: [
-                    { const: "yes", title: "Yes, go ahead" },
-                    { const: "no", title: "No, skip" }
+                    { const: "approve_all", title: "✅ Approve — tackle all items in order" },
+                    { const: "pick", title: "🎯 Pick — choose specific item(s)" },
+                    { const: "deny", title: "❌ Deny — skip this plan" }
                   ],
-                  default: "yes"
+                  default: "approve_all"
+                },
+                selected_items: {
+                  type: "string",
+                  title: "If picking, which item?",
+                  description: "Only used when 'Pick' is selected above",
+                  oneOf: itemChoices
                 },
                 custom_instruction: {
                   type: "string",
-                  title: "Or tell me what to do instead (optional)",
-                  description: "e.g. 'work on item 3' or 'focus on the BUG in parser.ts'"
+                  title: "Custom instruction (optional)",
+                  description: "e.g. 'focus on BUGs only' or 'skip item 2, do the rest'"
                 }
               },
-              required: ["proceed"]
+              required: ["action"]
             }
           });
 
           if (result.action === "accept" && result.content) {
+            const userAction = result.content.action as string;
             const customInstruction = result.content.custom_instruction as string | undefined;
-            const proceed = result.content.proceed as string;
+            const selectedItem = result.content.selected_items as string | undefined;
+
+            if (userAction === "deny") {
+              return {
+                content: [{ type: "text", text: "User denied the plan. No action needed." }]
+              };
+            }
 
             if (customInstruction && customInstruction.trim().length > 0) {
               return {
                 content: [{
                   type: "text",
-                  text: `User provided custom instruction: "${customInstruction.trim()}"\n\nHere are all the scanned items for context:\n${JSON.stringify(topItems, null, 2)}`
+                  text: `User approved the plan with custom instruction: "${customInstruction.trim()}"\n\nPlan items:\n${JSON.stringify(topItems, null, 2)}`
                 }]
               };
             }
 
-            if (proceed === "yes") {
-              const chosen = topItems[0];
+            if (userAction === "pick" && selectedItem) {
+              const idx = parseInt(selectedItem, 10) - 1;
+              const chosen = topItems[idx] || topItems[0];
               return {
                 content: [{
                   type: "text",
-                  text: `User approved. Proceed with the top priority item:\n${JSON.stringify(chosen, null, 2)}`
+                  text: `User approved item #${idx + 1} from the plan. Proceed with:\n${JSON.stringify(chosen, null, 2)}`
                 }]
               };
-            } else {
-              return {
-                content: [{ type: "text", text: "User chose not to proceed. No action needed." }]
-              };
             }
+
+            // approve_all
+            return {
+              content: [{
+                type: "text",
+                text: `User approved the full plan. Proceed with all ${topItems.length} item(s) in priority order:\n${JSON.stringify(topItems, null, 2)}`
+              }]
+            };
           } else if (result.action === "decline") {
             return {
-              content: [{ type: "text", text: "User declined to select a TODO. No action needed." }]
+              content: [{ type: "text", text: "User declined the plan. No action needed." }]
             };
           } else {
             return {
-              content: [{ type: "text", text: "TODO selection was cancelled." }]
+              content: [{ type: "text", text: "Plan review was cancelled." }]
             };
           }
         } catch (elicitError: any) {
