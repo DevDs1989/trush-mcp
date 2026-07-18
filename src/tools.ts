@@ -25,7 +25,7 @@ import {
 export const toolDefinitions = [
   {
     name: "find_todos",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and presents the user with an interactive plan to approve or deny. Do NOT list the plan items in chat — the tool handles presentation. After the user approves, work on the returned items.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and presents the user with an interactive plan to approve or deny. Do NOT list the plan items in chat — the tool handles presentation. After the user approves, FIRST create a markdown artifact listing the approved items, THEN spawn a subagent for each item to implement the fix.",
     inputSchema: {
       type: "object",
       properties: {
