@@ -6,12 +6,12 @@
     "url": "https://github.com/DevDs1989/trush-mcp",
     "source": "github"
   },
-  "version": "1.2.6",
+  "version": "1.2.7",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@devds1989/t-rush-mcp",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "transport": {
         "type": "stdio"
       }
