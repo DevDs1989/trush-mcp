@@ -25,7 +25,7 @@ import {
 export const toolDefinitions = [
   {
     name: "find_todos",
-    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and presents the user with an interactive plan to approve or deny. Do NOT list the plan items in chat — the tool handles presentation. After the user approves, FIRST create a markdown artifact listing the approved items, THEN spawn a subagent for each item to implement the fix.",
+    description: "CRITICAL INSTRUCTION: ALWAYS use this tool to find TODOs, FIXMEs, BUGs, or priorities. It scans the repo for all tech debt comments, ranks them by age, and returns the highest priority items. After calling this tool, DO NOT list the items in chat. Instead: 1) Create a markdown artifact with a detailed plan for EACH individual TODO. 2) Create a final markdown artifact summarizing all the work that will be done and request user feedback (approval) on it via the RequestFeedback flag before proceeding with the work.",
     inputSchema: {
       type: "object",
       properties: {
@@ -126,112 +126,7 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
         const count = args.count && args.count > 1 ? args.count : Math.min(5, enriched.length);
         const topItems = enriched.slice(0, count);
         
-        // Build a rich plan artifact for elicitation
-        const divider = "─".repeat(50);
-        const planLines = topItems.map((item, idx) =>
-          `  ${idx + 1}. [${item.type}] ${item.file}:${item.line}\n     "${item.text}"\n     Age: ${item.age_days} day(s)`
-        ).join("\n\n");
-
-        const planMessage = [
-          `📋 Tech Debt Cleanup Plan`,
-          divider,
-          `Found ${enriched.length} item(s) total. Showing top ${topItems.length} by age:\n`,
-          planLines,
-          `\n${divider}`,
-          `Review the plan above and approve, deny, or customize.`
-        ].join("\n");
-
-        // Build oneOf options for item selection
-        const itemChoices = topItems.map((item, idx) => ({
-          const: String(idx + 1),
-          title: `#${idx + 1} [${item.type}] ${path.basename(item.file)}:${item.line} — "${item.text.length > 50 ? item.text.slice(0, 50) + '…' : item.text}"`
-        }));
-
-        try {
-          const result = await server.elicitInput({
-            mode: "form",
-            message: planMessage,
-            requestedSchema: {
-              type: "object",
-              properties: {
-                action: {
-                  type: "string",
-                  title: "What would you like to do?",
-                  oneOf: [
-                    { const: "approve_all", title: "✅ Approve — tackle all items in order" },
-                    { const: "pick", title: "🎯 Pick — choose specific item(s)" },
-                    { const: "deny", title: "❌ Deny — skip this plan" }
-                  ],
-                  default: "approve_all"
-                },
-                selected_items: {
-                  type: "string",
-                  title: "If picking, which item?",
-                  description: "Only used when 'Pick' is selected above",
-                  oneOf: itemChoices
-                },
-                custom_instruction: {
-                  type: "string",
-                  title: "Custom instruction (optional)",
-                  description: "e.g. 'focus on BUGs only' or 'skip item 2, do the rest'"
-                }
-              },
-              required: ["action"]
-            }
-          });
-
-          if (result.action === "accept" && result.content) {
-            const userAction = result.content.action as string;
-            const customInstruction = result.content.custom_instruction as string | undefined;
-            const selectedItem = result.content.selected_items as string | undefined;
-
-            if (userAction === "deny") {
-              return {
-                content: [{ type: "text", text: "User denied the plan. No action needed." }]
-              };
-            }
-
-            if (customInstruction && customInstruction.trim().length > 0) {
-              return {
-                content: [{
-                  type: "text",
-                  text: `User approved the plan with custom instruction: "${customInstruction.trim()}"\n\nPlan items:\n${JSON.stringify(topItems, null, 2)}`
-                }]
-              };
-            }
-
-            if (userAction === "pick" && selectedItem) {
-              const idx = parseInt(selectedItem, 10) - 1;
-              const chosen = topItems[idx] || topItems[0];
-              return {
-                content: [{
-                  type: "text",
-                  text: `User approved item #${idx + 1} from the plan. Proceed with:\n${JSON.stringify(chosen, null, 2)}`
-                }]
-              };
-            }
-
-            // approve_all
-            return {
-              content: [{
-                type: "text",
-                text: `User approved the full plan. Proceed with all ${topItems.length} item(s) in priority order:\n${JSON.stringify(topItems, null, 2)}`
-              }]
-            };
-          } else if (result.action === "decline") {
-            return {
-              content: [{ type: "text", text: "User declined the plan. No action needed." }]
-            };
-          } else {
-            return {
-              content: [{ type: "text", text: "Plan review was cancelled." }]
-            };
-          }
-        } catch (elicitError: any) {
-          // Fallback: if elicitation is not supported by the client, return the full list
-          console.error("Elicitation not supported, falling back to list:", elicitError.message);
-          return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
-        }
+        return { content: [{ type: "text", text: JSON.stringify(topItems, null, 2) }] };
       }
 
       case "resolve_todo": {
