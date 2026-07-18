@@ -30,7 +30,8 @@ export const toolDefinitions = [
       type: "object",
       properties: {
         count: { type: "number", description: "Number of top items to return (default 5)" },
-        repo_path: { type: "string", description: "Absolute path to the repository" }
+        repo_path: { type: "string", description: "Absolute path to the repository" },
+        directory_filter: { type: "string", description: "Optional subdirectory path to restrict the scan to a specific folder" }
       },
       required: ["repo_path"]
     }
@@ -52,7 +53,10 @@ export const toolDefinitions = [
     description: "Internal/manual use: returns the full unranked list of TODOs in a repo.",
     inputSchema: {
       type: "object",
-      properties: { cwd: { type: "string", description: "Absolute path to the repository" } },
+      properties: { 
+        cwd: { type: "string", description: "Absolute path to the repository" },
+        directory_filter: { type: "string", description: "Optional subdirectory path" }
+      },
       required: ["cwd"]
     }
   },
@@ -61,7 +65,11 @@ export const toolDefinitions = [
     description: "CRITICAL INSTRUCTION: ALWAYS use this tool instead of generic Search or grep_search when looking for a specific TODO, FIXME, or BUG. Fuzzy searches across the codebase for matching tech debt by intent.",
     inputSchema: {
       type: "object",
-      properties: { cwd: { type: "string", description: "Absolute path to the repository" }, query: { type: "string", description: "Keywords only, no conversational filler" } },
+      properties: { 
+        cwd: { type: "string", description: "Absolute path to the repository" }, 
+        query: { type: "string", description: "Keywords only, no conversational filler" },
+        directory_filter: { type: "string", description: "Optional subdirectory path" }
+      },
       required: ["cwd", "query"]
     }
   },
@@ -111,7 +119,8 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
     switch (name) {
       case "find_todos": {
         const args = TopPriorityTodoSchema.parse(argumentsObj);
-        const cwd = args.repo_path || process.cwd();
+        const baseCwd = args.repo_path || process.cwd();
+        const cwd = args.directory_filter ? path.resolve(baseCwd, args.directory_filter) : baseCwd;
         const items = await scanRepo(cwd);
         if (items.length === 0) {
           return { content: [{ type: "text", text: "No TODOs found in this repository! 🎉" }] };
@@ -153,13 +162,17 @@ export async function handleToolCall(name: string, argumentsObj: any, server: Se
       
       case "scan_todos_raw": {
         const args = ScanTodosSchema.parse(argumentsObj);
-        const items = await scanRepo(args.cwd || process.cwd());
+        const baseCwd = args.cwd || process.cwd();
+        const cwd = args.directory_filter ? path.resolve(baseCwd, args.directory_filter) : baseCwd;
+        const items = await scanRepo(cwd);
         return { content: [{ type: "text", text: JSON.stringify(items, null, 2) }] };
       }
 
       case "search_todos": {
         const args = SearchTodosSchema.parse(argumentsObj);
-        const items = await scanRepo(args.cwd);
+        const baseCwd = args.cwd || process.cwd();
+        const cwd = args.directory_filter ? path.resolve(baseCwd, args.directory_filter) : baseCwd;
+        const items = await scanRepo(cwd);
         const results = searchTodos(items, args.query);
         return { content: [{ type: "text", text: JSON.stringify(results, null, 2) }] };
       }
